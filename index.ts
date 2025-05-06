@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+import 'dotenv/config';
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -128,7 +128,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 async function startServer() {
   try {
-    console.error("Starting server");
+    console.log("Starting server");
     
     // Add this line to force authentication at startup
     await ensureAuth(); // This will trigger the auth flow if no valid credentials exist
