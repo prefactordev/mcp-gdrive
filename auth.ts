@@ -13,6 +13,7 @@ const CREDS_DIR =
   process.env.GDRIVE_CREDS_DIR ||
   path.join(path.dirname(new URL(import.meta.url).pathname), "../../../");
 
+
 // Ensure the credentials directory exists
 function ensureCredsDirectory() {
   try {
