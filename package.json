@@ -25,9 +25,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && shx chmod +x dist/*.js",
+    "build": "tsc",
     "prepare": "npm run build",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",
@@ -37,7 +38,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.9.3",
-    "shx": "^0.3.4",
     "typescript": "^5.6.2"
   }
 }

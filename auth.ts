@@ -5,13 +5,14 @@ import path from "path";
 
 export const SCOPES = [
   "https://www.googleapis.com/auth/drive.readonly",
-  "https://www.googleapis.com/auth/spreadsheets",
+  "https://www.googleapis.com/auth/spreadsheets.readonly",
 ];
 
 // Get credentials directory from environment variable or use default
+// .. is because we're in the dist folder after compilation
 const CREDS_DIR =
   process.env.GDRIVE_CREDS_DIR ||
-  path.join(path.dirname(new URL(import.meta.url).pathname), "../../../");
+  path.join(path.dirname(new URL(import.meta.url).pathname), "../.creds");
 
 
 // Ensure the credentials directory exists
