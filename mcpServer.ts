@@ -94,7 +94,9 @@ export async function buildServer() {
     };
   });
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => {
+  server.setRequestHandler(ListToolsRequestSchema, async (request, { authInfo }) => {
+    console.log("authInfo", request.method, authInfo);
+
     return {
       tools: tools.map(({ name, description, inputSchema }) => ({
         name,

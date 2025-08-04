@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from "express";
+import { jwtVerify, createRemoteJWKSet } from "jose";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 
 interface AuthMiddlewareOptions {
   mcpPath: string;
 }
 
 interface RequestWithToken extends Request {
-  bearerToken?: string;
+  auth?: AuthInfo;
 }
 
 function getFullUrl(req: Request) {
@@ -25,19 +27,33 @@ function addWellKnownPrefix(url: string, name: string) {
 }
 
 export function authMiddleware(options: AuthMiddlewareOptions) {
-  function handleMcpRequest(req: RequestWithToken, res: Response, next: NextFunction) {
+  async function handleMcpRequest(req: RequestWithToken, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
 
     if (authHeader) {
       const match = authHeader.match(/^Bearer\s+(.+)$/i);
       if (match) {
-        req.bearerToken = match[1];
+        const bearerToken = match[1];
+        const jwtData = await validateJWT(bearerToken);
+
+        req.auth = {
+          token: bearerToken,
+          clientId: jwtData.azp as string,
+          scopes: ((jwtData.scope ?? "") as string).split(" "),
+          expiresAt: jwtData.exp,
+          resource: new URL(getFullUrl(req)),
+          extra: {
+            sub: jwtData.sub
+          }
+        };
+
+        console.log("MCP auth info", req.auth);
+
         next();
       }
     } else {
       const fullUrl = getFullUrl(req);
 
-      console.error(`Unauthorized request: ${fullUrl}`);
       res
         .status(401)
         .header("WWW-Authenticate", `Bearer resource_metadata=${addWellKnownPrefix(fullUrl, "oauth-protected-resource")}`)
@@ -56,16 +72,35 @@ export function authMiddleware(options: AuthMiddlewareOptions) {
 
   const MCP_AUTH_ISSUER = process.env.MCP_AUTH_ISSUER!;
 
-  async function handleAuthorizationServerRequest(req: RequestWithToken, res: Response, next: NextFunction) {
+  async function fetchAuthorizationServerDiscoveryDocument() {
     const response = await fetch(addWellKnownPrefix(MCP_AUTH_ISSUER, "oauth-authorization-server"));
 
     if (response.ok) {
-      const data = await response.json();
-      console.log("Authorization server metadata fetched successfully", data);
-      res.json(data);
+      return response.json();
     } else {
+      throw new Error(`Failed to fetch authorization server discovery document: ${response.statusText}`);
+    }
+  }
+
+  async function handleAuthorizationServerRequest(req: RequestWithToken, res: Response, next: NextFunction) {
+    try {
+      const data = await fetchAuthorizationServerDiscoveryDocument();
+      res.json(data);
+    } catch (error) {
+      console.error("Failed to fetch authorization server discovery document", error);
       res.status(500).send("Failed to fetch authorization server metadata");
     }
+  }
+
+  async function validateJWT(token: string) {
+    const discovery = await fetchAuthorizationServerDiscoveryDocument();
+    const jwks = createRemoteJWKSet(new URL(discovery.jwks_uri));
+
+    const { payload } = await jwtVerify(token, jwks, {
+      issuer: discovery.issuer
+    });
+
+    return payload;
   }
 
   return (req: RequestWithToken, res: Response, next: NextFunction) => {
