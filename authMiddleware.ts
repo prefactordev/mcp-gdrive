@@ -5,7 +5,7 @@ interface AuthMiddlewareOptions {
 }
 
 interface RequestWithToken extends Request {
-  token?: string;
+  bearerToken?: string;
 }
 
 function getFullUrl(req: Request) {
@@ -31,7 +31,7 @@ export function authMiddleware(options: AuthMiddlewareOptions) {
     if (authHeader) {
       const match = authHeader.match(/^Bearer\s+(.+)$/i);
       if (match) {
-        req.token = match[1];
+        req.bearerToken = match[1];
         next();
       }
     } else {
