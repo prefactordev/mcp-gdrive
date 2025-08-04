@@ -1,5 +1,4 @@
-import { GDriveSearchInput, InternalToolResponse } from "./types.js";
-import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { GDriveSearchInput, InternalToolResponse, ToolAuth } from "./types.js";
 import { buildDrive } from "../googleApi.js";
 
 export const schema = {
@@ -28,7 +27,7 @@ export const schema = {
 } as const;
 
 export async function search(
-  authInfo: AuthInfo | undefined,
+  authInfo: ToolAuth,
   args: GDriveSearchInput,
 ): Promise<InternalToolResponse> {
   const drive = await buildDrive(authInfo);

@@ -1,4 +1,10 @@
-import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+export interface ToolAuth {
+  token: string;
+  clientId: string;
+  scopes: string[];
+  expiresAt: number;
+  subject: string;
+}
 
 // Define base types for our tool system
 export interface Tool<T> {
@@ -9,7 +15,7 @@ export interface Tool<T> {
     properties: Record<string, unknown>;
     required: readonly string[];
   };
-  handler: (authInfo: AuthInfo | undefined, args: T) => Promise<InternalToolResponse>;
+  handler: (authInfo: ToolAuth, args: T) => Promise<InternalToolResponse>;
 }
 
 // Our internal tool response format

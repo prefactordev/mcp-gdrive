@@ -7,8 +7,23 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { tools } from "./tools/index.js";
-import { InternalToolResponse } from "./tools/types.js";
+import { InternalToolResponse, ToolAuth } from "./tools/types.js";
 import { buildDrive } from "./googleApi.js";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+
+function getToolAuth(authInfo: AuthInfo | undefined): ToolAuth {
+  if (!authInfo) {
+    throw new Error("No auth info provided (this should be handled by the auth middleware");
+  }
+
+  return {
+    token: authInfo.token,
+    clientId: authInfo.clientId,
+    scopes: authInfo.scopes,
+    expiresAt: authInfo.expiresAt!,
+    subject: authInfo.extra?.sub as string,
+  }
+}
 
 export async function buildServer() {
   const server = new Server(
@@ -39,7 +54,7 @@ export async function buildServer() {
       params.pageToken = request.params.cursor;
     }
 
-    const drive = await buildDrive(authInfo);
+    const drive = await buildDrive(getToolAuth(authInfo));
     const res = await drive.files.list(params);
     const files = res.data.files!;
 
@@ -56,7 +71,7 @@ export async function buildServer() {
   server.setRequestHandler(ReadResourceRequestSchema, async (request, { authInfo }) => {
     const fileId = request.params.uri.replace("gdrive:///", "");
     const readFileTool = tools[1]; // gdrive_read_file is the second tool
-    const result = await readFileTool.handler(authInfo, { fileId });
+    const result = await readFileTool.handler(getToolAuth(authInfo), { fileId });
 
     // Extract the file contents from the tool response
     const fileContents = result.content[0].text.split("\n\n")[1]; // Skip the "Contents of file:" prefix
@@ -99,7 +114,7 @@ export async function buildServer() {
       throw new Error("Tool not found");
     }
 
-    const result = await tool.handler(authInfo, request.params.arguments as any);
+    const result = await tool.handler(getToolAuth(authInfo), request.params.arguments as any);
     return convertToolResponse(result);
   });
 
