@@ -1,5 +1,6 @@
-import { google } from "googleapis";
 import { GSheetsUpdateCellInput, InternalToolResponse } from "./types.js";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { buildSheets } from "../googleApi.js";
 
 export const schema = {
   name: "gsheets_update_cell",
@@ -25,10 +26,11 @@ export const schema = {
 } as const;
 
 export async function updateCell(
+  authInfo: AuthInfo | undefined,
   args: GSheetsUpdateCellInput,
 ): Promise<InternalToolResponse> {
   const { fileId, range, value } = args;
-  const sheets = google.sheets({ version: "v4" });
+  const sheets = await buildSheets(authInfo);
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: fileId,

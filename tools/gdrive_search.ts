@@ -1,5 +1,6 @@
-import { google } from "googleapis";
 import { GDriveSearchInput, InternalToolResponse } from "./types.js";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { buildDrive } from "../googleApi.js";
 
 export const schema = {
   name: "gdrive_search",
@@ -27,9 +28,10 @@ export const schema = {
 } as const;
 
 export async function search(
+  authInfo: AuthInfo | undefined,
   args: GDriveSearchInput,
 ): Promise<InternalToolResponse> {
-  const drive = google.drive("v3");
+  const drive = await buildDrive(authInfo);
   const userQuery = args.query.trim();
   let searchQuery = "";
 

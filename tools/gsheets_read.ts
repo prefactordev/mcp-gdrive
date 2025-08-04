@@ -1,5 +1,6 @@
-import { google } from "googleapis";
 import { GSheetsReadInput, InternalToolResponse } from "./types.js";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { buildSheets } from "../googleApi.js";
 
 export const schema = {
   name: "gsheets_read",
@@ -29,8 +30,6 @@ export const schema = {
     required: ["spreadsheetId"],
   },
 } as const;
-
-const sheets = google.sheets("v4");
 
 interface CellData {
   value: any;
@@ -96,9 +95,11 @@ async function processSheetData(response: any): Promise<ProcessedSheetData[]> {
 }
 
 export async function readSheet(
+  authInfo: AuthInfo | undefined,
   args: GSheetsReadInput,
 ): Promise<InternalToolResponse> {
   try {
+    const sheets = await buildSheets(authInfo);
     let response;
 
     if (args.ranges) {

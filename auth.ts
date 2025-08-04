@@ -139,35 +139,33 @@ export async function loadCredentialsQuietly() {
 }
 
 // Get valid credentials, prompting for auth if necessary
-export async function getValidCredentials(forceAuth = false) {
-  if (!forceAuth) {
-    const quietAuth = await loadCredentialsQuietly();
-    if (quietAuth) {
-      return quietAuth;
-    }
+export async function getValidCredentials() {
+  const quietAuth = await loadCredentialsQuietly();
+  if (quietAuth) {
+    return quietAuth;
   }
 
   return await authenticateAndSaveCredentials();
 }
 
-// Background refresh that never prompts for auth
-export function setupTokenRefresh() {
-  console.error("Setting up automatic token refresh interval (45 minutes)");
-  return setInterval(
-    async () => {
-      try {
-        console.error("Running scheduled token refresh check");
-        const auth = await loadCredentialsQuietly();
-        if (auth) {
-          google.options({ auth });
-          console.error("Completed scheduled token refresh");
-        } else {
-          console.error("Skipping token refresh - no valid credentials");
-        }
-      } catch (error) {
-        console.error("Error in automatic token refresh:", error);
-      }
-    },
-    45 * 60 * 1000,
-  );
-}
+// // Background refresh that never prompts for auth
+// export function setupTokenRefresh() {
+//   console.error("Setting up automatic token refresh interval (45 minutes)");
+//   return setInterval(
+//     async () => {
+//       try {
+//         console.error("Running scheduled token refresh check");
+//         const auth = await loadCredentialsQuietly();
+//         if (auth) {
+//           google.options({ auth });
+//           console.error("Completed scheduled token refresh");
+//         } else {
+//           console.error("Skipping token refresh - no valid credentials");
+//         }
+//       } catch (error) {
+//         console.error("Error in automatic token refresh:", error);
+//       }
+//     },
+//     45 * 60 * 1000,
+//   );
+// }

@@ -3,7 +3,7 @@
 import { buildServer } from "./mcpServer.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { getValidCredentials, setupTokenRefresh } from "./auth.js";
+import { getValidCredentials } from "./auth.js";
 import express, { Request, Response } from "express";
 import { authMiddleware } from "./authMiddleware.js";
 
@@ -113,8 +113,6 @@ async function start(http: boolean) {
   // Add this line to force authentication at startup
   // This will trigger the auth flow if no valid credentials exist
   await getValidCredentials();
-  // Set up periodic token refresh that never prompts for auth
-  setupTokenRefresh();
 
   if (http) {
     await startHttpServer();

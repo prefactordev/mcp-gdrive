@@ -1,5 +1,7 @@
-import { google } from "googleapis";
 import { GDriveReadFileInput, InternalToolResponse } from "./types.js";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { buildDrive } from "../googleApi.js";
+import { drive_v3 } from "googleapis/build/src/apis/drive/v3.js";
 
 export const schema = {
   name: "gdrive_read_file",
@@ -16,8 +18,6 @@ export const schema = {
   },
 } as const;
 
-const drive = google.drive("v3");
-
 interface FileContent {
   uri?: string;
   mimeType: string;
@@ -26,9 +26,11 @@ interface FileContent {
 }
 
 export async function readFile(
+  authInfo: AuthInfo | undefined,
   args: GDriveReadFileInput,
 ): Promise<InternalToolResponse> {
-  const result = await readGoogleDriveFile(args.fileId);
+  const drive = await buildDrive(authInfo);
+  const result = await readGoogleDriveFile(drive, args.fileId);
   return {
     content: [
       {
@@ -41,6 +43,7 @@ export async function readFile(
 }
 
 async function readGoogleDriveFile(
+  drive: drive_v3.Drive,
   fileId: string,
 ): Promise<{ name: string; contents: FileContent }> {
   // First get file metadata to check mime type
