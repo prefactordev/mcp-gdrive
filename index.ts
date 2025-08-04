@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { getValidCredentials, setupTokenRefresh } from "./auth.js";
 import express, { Request, Response } from "express";
+import { authMiddleware } from "./authMiddleware.js";
 
 async function startStdioServer() {
   try {
@@ -20,7 +21,14 @@ async function startStdioServer() {
 
 function buildExpressApp() {
   const app = express();
+
+  app.use((req, _res, next) => {
+    console.log(`${req.method} ${req.originalUrl}`);
+    next();
+  });
+
   app.use(express.json());
+  app.use(authMiddleware({ mcpPath: '/mcp' }));
 
   app.post('/mcp', async (req: Request, res: Response) => {
     // In stateless mode, create a new instance of transport and server for each request
