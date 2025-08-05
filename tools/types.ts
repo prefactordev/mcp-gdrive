@@ -1,10 +1,4 @@
-export interface ToolAuth {
-  token: string;
-  clientId: string;
-  scopes: string[];
-  expiresAt: number;
-  subject: string;
-}
+import { ClientAuth } from "../auth.js";
 
 // Define base types for our tool system
 export interface Tool<T> {
@@ -15,7 +9,7 @@ export interface Tool<T> {
     properties: Record<string, unknown>;
     required: readonly string[];
   };
-  handler: (authInfo: ToolAuth, args: T) => Promise<InternalToolResponse>;
+  handler: (authInfo: ClientAuth, args: T) => Promise<InternalToolResponse>;
 }
 
 // Our internal tool response format

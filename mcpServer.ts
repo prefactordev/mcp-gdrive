@@ -7,11 +7,12 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { tools } from "./tools/index.js";
-import { InternalToolResponse, ToolAuth } from "./tools/types.js";
+import { InternalToolResponse } from "./tools/types.js";
 import { buildDrive } from "./googleApi.js";
 import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { ClientAuth } from "./auth.js";
 
-function getToolAuth(authInfo: AuthInfo | undefined): ToolAuth {
+function getClientAuth(authInfo: AuthInfo | undefined): ClientAuth {
   if (!authInfo) {
     throw new Error("No auth info provided (this should be handled by the auth middleware");
   }
@@ -54,7 +55,7 @@ export async function buildServer() {
       params.pageToken = request.params.cursor;
     }
 
-    const drive = await buildDrive(getToolAuth(authInfo));
+    const drive = await buildDrive(getClientAuth(authInfo));
     const res = await drive.files.list(params);
     const files = res.data.files!;
 
@@ -71,7 +72,7 @@ export async function buildServer() {
   server.setRequestHandler(ReadResourceRequestSchema, async (request, { authInfo }) => {
     const fileId = request.params.uri.replace("gdrive:///", "");
     const readFileTool = tools[1]; // gdrive_read_file is the second tool
-    const result = await readFileTool.handler(getToolAuth(authInfo), { fileId });
+    const result = await readFileTool.handler(getClientAuth(authInfo), { fileId });
 
     // Extract the file contents from the tool response
     const fileContents = result.content[0].text.split("\n\n")[1]; // Skip the "Contents of file:" prefix
@@ -114,7 +115,7 @@ export async function buildServer() {
       throw new Error("Tool not found");
     }
 
-    const result = await tool.handler(getToolAuth(authInfo), request.params.arguments as any);
+    const result = await tool.handler(getClientAuth(authInfo), request.params.arguments as any);
     return convertToolResponse(result);
   });
 

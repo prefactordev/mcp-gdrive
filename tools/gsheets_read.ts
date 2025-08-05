@@ -1,5 +1,6 @@
-import { GSheetsReadInput, InternalToolResponse, ToolAuth } from "./types.js";
+import { GSheetsReadInput, InternalToolResponse } from "./types.js";
 import { buildSheets } from "../googleApi.js";
+import { ClientAuth } from "../auth.js";
 
 export const schema = {
   name: "gsheets_read",
@@ -94,7 +95,7 @@ async function processSheetData(response: any): Promise<ProcessedSheetData[]> {
 }
 
 export async function readSheet(
-  authInfo: ToolAuth,
+  authInfo: ClientAuth,
   args: GSheetsReadInput,
 ): Promise<InternalToolResponse> {
   try {

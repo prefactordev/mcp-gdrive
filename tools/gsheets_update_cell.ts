@@ -1,5 +1,6 @@
-import { GSheetsUpdateCellInput, InternalToolResponse, ToolAuth } from "./types.js";
+import { GSheetsUpdateCellInput, InternalToolResponse } from "./types.js";
 import { buildSheets } from "../googleApi.js";
+import { ClientAuth } from "../auth.js";
 
 export const schema = {
   name: "gsheets_update_cell",
@@ -25,7 +26,7 @@ export const schema = {
 } as const;
 
 export async function updateCell(
-  authInfo: ToolAuth,
+  authInfo: ClientAuth,
   args: GSheetsUpdateCellInput,
 ): Promise<InternalToolResponse> {
   const { fileId, range, value } = args;

@@ -1,6 +1,7 @@
-import { GDriveReadFileInput, InternalToolResponse, ToolAuth } from "./types.js";
+import { GDriveReadFileInput, InternalToolResponse } from "./types.js";
 import { buildDrive } from "../googleApi.js";
 import { drive_v3 } from "googleapis/build/src/apis/drive/v3.js";
+import { ClientAuth } from "../auth.js";
 
 export const schema = {
   name: "gdrive_read_file",
@@ -25,7 +26,7 @@ interface FileContent {
 }
 
 export async function readFile(
-  authInfo: ToolAuth,
+  authInfo: ClientAuth,
   args: GDriveReadFileInput,
 ): Promise<InternalToolResponse> {
   const drive = await buildDrive(authInfo);
