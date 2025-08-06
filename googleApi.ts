@@ -1,6 +1,18 @@
 import { google } from "googleapis";
 import { Credentials } from "google-auth-library";
 import { getValidCredentials, ClientAuth } from "./auth.js";
+import { exchangeToken } from "./authMiddleware.js";
+
+async function fetchApiAuth(authInfo: ClientAuth): Promise<Credentials> {
+  const response = await exchangeToken(authInfo.token, "oidc_google");
+
+  return {
+    access_token: response.access_token,
+    scope: response.scope,
+    token_type: response.token_type,
+    expiry_date: Date.now() + response.expires_in * 1000
+  };
+}
 
 function buildApiAuth(credentials: Credentials) {
   const auth = new google.auth.OAuth2();
@@ -10,7 +22,9 @@ function buildApiAuth(credentials: Credentials) {
 
 async function getApiAuth(authInfo: ClientAuth) {
   // TODO actually use authInfo
-  const credentials = await getValidCredentials();
+  const credentials = await fetchApiAuth(authInfo);
+  console.log("credentials", credentials);
+  // const credentials = await getValidCredentials();
   return buildApiAuth(credentials);
 }
 

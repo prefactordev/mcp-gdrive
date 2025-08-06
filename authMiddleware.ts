@@ -26,6 +26,47 @@ function addWellKnownPrefix(url: string, name: string) {
   return urlObj.toString();
 }
 
+const MCP_AUTH_ISSUER = process.env.MCP_AUTH_ISSUER!;
+const AUTH_ISSUER = process.env.AUTH_ISSUER!;
+const AUTH_CLIENT_ID = process.env.AUTH_CLIENT_ID!;
+const AUTH_CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET!;
+
+async function fetchAuthorizationServerDiscoveryDocument(issuer: string) {
+  const response = await fetch(addWellKnownPrefix(issuer, "oauth-authorization-server"));
+
+  if (response.ok) {
+    return response.json();
+  } else {
+    throw new Error(`Failed to fetch authorization server discovery document: ${response.statusText}`);
+  }
+}
+
+export async function exchangeToken(subjectToken: string, audience: string) {
+  const discovery = await fetchAuthorizationServerDiscoveryDocument(AUTH_ISSUER);
+  const response = await fetch(discovery.token_endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({
+      client_id: AUTH_CLIENT_ID,
+      client_secret: AUTH_CLIENT_SECRET,
+      audience,
+      grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+      subject_token: subjectToken,
+      subject_token_type: "urn:ietf:params:oauth:token-type:access_token"
+    })
+  });
+
+  if (response.ok) {
+    return response.json();
+  } else {
+    console.log(await response.json());
+
+    throw new Error(`Failed to exchange token`);
+  }
+}
+
 export function authMiddleware(options: AuthMiddlewareOptions) {
   async function handleMcpRequest(req: RequestWithToken, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
@@ -70,21 +111,9 @@ export function authMiddleware(options: AuthMiddlewareOptions) {
     })
   }
 
-  const MCP_AUTH_ISSUER = process.env.MCP_AUTH_ISSUER!;
-
-  async function fetchAuthorizationServerDiscoveryDocument() {
-    const response = await fetch(addWellKnownPrefix(MCP_AUTH_ISSUER, "oauth-authorization-server"));
-
-    if (response.ok) {
-      return response.json();
-    } else {
-      throw new Error(`Failed to fetch authorization server discovery document: ${response.statusText}`);
-    }
-  }
-
   async function handleAuthorizationServerRequest(req: RequestWithToken, res: Response, next: NextFunction) {
     try {
-      const data = await fetchAuthorizationServerDiscoveryDocument();
+      const data = await fetchAuthorizationServerDiscoveryDocument(MCP_AUTH_ISSUER);
       res.json(data);
     } catch (error) {
       console.error("Failed to fetch authorization server discovery document", error);
@@ -93,7 +122,7 @@ export function authMiddleware(options: AuthMiddlewareOptions) {
   }
 
   async function validateJWT(token: string) {
-    const discovery = await fetchAuthorizationServerDiscoveryDocument();
+    const discovery = await fetchAuthorizationServerDiscoveryDocument(MCP_AUTH_ISSUER);
     const jwks = createRemoteJWKSet(new URL(discovery.jwks_uri));
 
     const { payload } = await jwtVerify(token, jwks, {
