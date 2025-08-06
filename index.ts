@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express, { Request, Response } from "express";
 import { authMiddleware } from "./authMiddleware.js";
+import cors from "cors";
 
 async function startStdioServer() {
   try {
@@ -26,6 +27,11 @@ function buildExpressApp() {
     next();
   });
 
+  app.use(cors({
+    origin: true,
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'MCP-Session-Id']
+  }));
   app.use(express.json());
   app.use(authMiddleware({ mcpPath: '/mcp' }));
 
