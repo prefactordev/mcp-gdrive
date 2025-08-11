@@ -56,53 +56,68 @@ The server provides access to Google Drive files:
 
 ## Getting started
 
-1. [Create a new Google Cloud project](https://console.cloud.google.com/projectcreate)
-2. [Enable the Google Drive API](https://console.cloud.google.com/workspace-api/products)
-3. [Configure an OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) ("internal" is fine for testing)
-4. Add OAuth scopes `https://www.googleapis.com/auth/drive.readonly`, `https://www.googleapis.com/auth/spreadsheets`
-5. In order to allow interaction with sheets and docs you will also need to enable the [Google Sheets API](https://console.cloud.google.com/apis/api/sheets.googleapis.com/) and [Google Docs API](https://console.cloud.google.com/marketplace/product/google/docs.googleapis.com) in your workspaces Enabled API and Services section.
-6. [Create an OAuth Client ID](https://console.cloud.google.com/apis/credentials/oauthclient) for application type "Desktop App"
-7. Download the JSON file of your client's OAuth keys
-8. Rename the key file to `gcp-oauth.keys.json` and place into the path you specify with `GDRIVE_CREDS_DIR` (i.e. `/Users/username/.config/mcp-gdrive`)
-9. Note your OAuth Client ID and Client Secret. They must be provided as environment variables along with your configuration directory.
-10. You will also need to setup a .env file within the project with the following fields. You can find the Client ID and Client Secret in the Credentials section of the Google Cloud Console.
+### Prerequisites
 
-```
-GDRIVE_CREDS_DIR=/path/to/config/directory
-CLIENT_ID=<CLIENT_ID>
-CLIENT_SECRET=<CLIENT_SECRET>
-```
+- [Mise](https://mise.jdx.dev/) - For managing Node.js versions and dependencies
+- [PNPM](https://pnpm.io/) - Package manager (will be installed via Mise)
 
-Make sure to build the server with either `npm run build` or `npm run watch`.
+### Installation
+
+1. Install the project using Mise:
+   ```bash
+   mise install
+   ```
+
+2. Build the server:
+   ```bash
+   pnpm run build
+   ```
 
 ### Authentication
 
-Next you will need to run `node ./dist/index.js` to trigger the authentication step
+This server uses [Prefactor](https://prefactor.tech/) for authentication, which provides a secure and streamlined way to access Google Drive without storing credentials locally.
 
-You will be prompted to authenticate with your browser. You must authenticate with an account in the same organization as your Google Cloud project.
+1. Set up your Prefactor account and configure Google Drive access
+2. Configure the required environment variables in your `.mise.local.toml` file:
 
-Your OAuth token is saved in the directory specified by the `GDRIVE_CREDS_DIR` environment variable.
+```toml
+[env]
+MCP_AUTH_ISSUER = "<YOUR PREFACTOR MCP ISSUER>"
+AUTH_ISSUER = "<YOUR PREFACTOR ISSUER>"
+AUTH_CLIENT_ID = "<YOUR PREFACTOR CLIENT ID>"
+AUTH_CLIENT_SECRET = "<YOUR PREFACTOR CLIENT SECRET>"
+```
 
-![Authentication Prompt](https://i.imgur.com/TbyV6Yq.png)
+3. No local OAuth setup or credential files are required
+4. Authentication is handled securely through Prefactor's infrastructure
 
-### Usage with Desktop App
+### Usage with MCP Clients
 
-To integrate this server with the desktop app, add the following to your app's server configuration:
+This server can be used as an MCP remote server. To connect to it, add the following to your MCP client configuration:
 
 ```json
 {
   "mcpServers": {
     "gdrive": {
-      "command": "npx",
-      "args": ["-y", "@isaacphi/mcp-gdrive"],
-      "env": {
-        "CLIENT_ID": "<CLIENT_ID>",
-        "CLIENT_SECRET": "<CLIENT_SECRET>",
-        "GDRIVE_CREDS_DIR": "/path/to/config/directory"
-      }
+      "server": "https://localhost:3000/mcp"
     }
   }
 }
+```
+
+Alternatively, you can run it as a standalone remote server and connect to it via network:
+
+```bash
+pnpm run start
+```
+
+The server will start and listen for MCP client connections on the configured host and port.
+
+### Development
+
+For development with auto-rebuild on changes:
+```bash
+pnpm run watch
 ```
 
 ## License
