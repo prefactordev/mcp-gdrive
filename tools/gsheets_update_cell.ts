@@ -1,6 +1,5 @@
-import { GSheetsUpdateCellInput, InternalToolResponse } from "./types.js";
+import { GSheetsUpdateCellInput, InternalToolResponse, ClientAuth } from "./types.js";
 import { buildSheets } from "../googleApi.js";
-import { ClientAuth } from "../auth.js";
 
 export const schema = {
   name: "gsheets_update_cell",

@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import { Credentials } from "google-auth-library";
-import { getValidCredentials, ClientAuth } from "./auth.js";
+import { ClientAuth } from "./tools/types.js";
 import { exchangeToken } from "./authMiddleware.js";
 
 async function fetchApiAuth(authInfo: ClientAuth): Promise<Credentials> {
@@ -23,8 +23,6 @@ function buildApiAuth(credentials: Credentials) {
 async function getApiAuth(authInfo: ClientAuth) {
   // TODO actually use authInfo
   const credentials = await fetchApiAuth(authInfo);
-  console.log("credentials", credentials);
-  // const credentials = await getValidCredentials();
   return buildApiAuth(credentials);
 }
 

@@ -1,4 +1,10 @@
-import { ClientAuth } from "../auth.js";
+export interface ClientAuth {
+  token: string;
+  clientId: string;
+  scopes: string[];
+  expiresAt: number;
+  subject: string;
+}
 
 // Define base types for our tool system
 export interface Tool<T> {

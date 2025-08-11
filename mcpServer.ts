@@ -7,10 +7,9 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { tools } from "./tools/index.js";
-import { InternalToolResponse } from "./tools/types.js";
+import { ClientAuth, InternalToolResponse } from "./tools/types.js";
 import { buildDrive } from "./googleApi.js";
 import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
-import { ClientAuth } from "./auth.js";
 
 function getClientAuth(authInfo: AuthInfo | undefined): ClientAuth {
   if (!authInfo) {

@@ -1,23 +1,10 @@
 #!/usr/bin/env node
 
 import { buildServer } from "./mcpServer.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express, { Request, Response } from "express";
 import { authMiddleware } from "./authMiddleware.js";
 import cors from "cors";
-
-async function startStdioServer() {
-  try {
-    console.error("Starting server");
-    const server = await buildServer();
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-  } catch (error) {
-    console.error("Error starting server:", error);
-    process.exit(1);
-  }
-}
 
 function buildExpressApp() {
   const app = express();
@@ -94,9 +81,6 @@ function buildExpressApp() {
   });
 
   return app;
-
-
-
 }
 
 async function startHttpServer() {
@@ -114,13 +98,5 @@ async function startHttpServer() {
   });
 }
 
-async function start(http: boolean) {
-  if (http) {
-    await startHttpServer();
-  } else {
-    await startStdioServer();
-  }
-}
-
 // Start server immediately
-start(true).catch(console.error);
+startHttpServer().catch(console.error);

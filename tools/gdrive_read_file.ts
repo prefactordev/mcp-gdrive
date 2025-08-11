@@ -1,7 +1,6 @@
-import { GDriveReadFileInput, InternalToolResponse } from "./types.js";
+import { GDriveReadFileInput, InternalToolResponse, ClientAuth } from "./types.js";
 import { buildDrive } from "../googleApi.js";
 import { drive_v3 } from "googleapis/build/src/apis/drive/v3.js";
-import { ClientAuth } from "../auth.js";
 
 export const schema = {
   name: "gdrive_read_file",
